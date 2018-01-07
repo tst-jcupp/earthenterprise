@@ -152,7 +152,8 @@ task openGeePostGisRpm(type: GeeRpm) {
     type = BINARY
     autoFindProvides = true
     autoFindRequires = true
-
+    requires('opengee-common', openGeeVersion, GREATER | EQUAL)
+    
     from (postGisInstallDir_opt) {
         into new File(packageInstallRootDir, 'opt')
     }
@@ -264,13 +265,14 @@ task openGeeCommonRpm(type: GeeRpm, dependsOn: openGeeSharedFiles) {
     autoFindProvides = true
     autoFindRequires = true
 
-    requires('opengee-postgis', '1.5.8', GREATER | EQUAL)
     requires('chkconfig')
     requires('shadow-utils')
     requires('perl')
     requires('sudo')
-    conflicts('opengee-postgis', '2.0', GREATER | EQUAL)
-
+    requires('xerces-c')
+    requires('ogdi')
+    requires('geos')
+    
     requiresCommands(packageSharedCommands +
         ['cat', 'cut', 'getent', 'grep' ])
     
@@ -341,6 +343,9 @@ task openGeeServerRpm (type: GeeRpm, dependsOn: openGeeSharedFiles) {
     url = 'https://github.com/google/earthenterprise'
     autoFindProvides = true
     autoFindRequires = true
+
+    requires('opengee-postgis', '1.5.8', GREATER | EQUAL)
+    conflicts('opengee-postgis', '2.0', GREATER | EQUAL)
 
     requires('opengee-common', openGeeVersion, GREATER | EQUAL)
     requiresPre('opengee-common', openGeeVersion, GREATER | EQUAL)
@@ -448,7 +453,11 @@ built from raster, vector, and location properties data.
     autoFindProvides = true
     autoFindRequires = true
 
+    requires('proj-devel') /* This dependency is not being picked up automatically by GeeRpm task */
+    requires('opengee-postgis', '1.5.8', GREATER | EQUAL)
     requires('opengee-common', openGeeVersion, GREATER | EQUAL)
+    conflicts('opengee-postgis', '2.0', GREATER | EQUAL)
+
 
     requiresCommands(
         packageSharedCommands +
