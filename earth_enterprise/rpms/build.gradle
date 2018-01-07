@@ -65,7 +65,7 @@ def openGeeVersion =
         // Strip comments:
         def commentIndex = it.indexOf('#')
 
-        commentIndex < 0 ? it : it.substring(0, commentIndex)        
+        commentIndex < 0 ? it : it.substring(0, commentIndex)
     }.
     collect { it.trim() }. // Trim whitespace.
     findAll { !it.isEmpty() }. // Skip empty lines.
@@ -141,7 +141,7 @@ task stageOpenGeeInstall(type: Exec, dependsOn: 'compileOpenGee') {
 task openGeePostGisRpm(type: GeeRpm) {
     packageName = 'opengee-postgis'
     release = "1.${rpmPlatformString}"
-    version = '1.5.8'
+    version = '2.3.4'
     user = 'root'
     permissionGroup = 'root'
     packageGroup = 'Application/Productivity'
@@ -153,7 +153,7 @@ task openGeePostGisRpm(type: GeeRpm) {
     autoFindProvides = true
     autoFindRequires = true
     requires('opengee-common', openGeeVersion, GREATER | EQUAL)
-    
+
     from (postGisInstallDir_opt) {
         into new File(packageInstallRootDir, 'opt')
     }
@@ -265,23 +265,25 @@ task openGeeCommonRpm(type: GeeRpm, dependsOn: openGeeSharedFiles) {
     autoFindProvides = true
     autoFindRequires = true
 
-    /* When the scons release=1 package target is run as a non-root user, scons does 
-    not include /sbin in the path, so auto-detection of chkconfig fails, so this 
+    /* When the scons release=1 package target is run as a non-root user, scons does
+    not include /sbin in the path, so auto-detection of chkconfig fails, so this
     dependency is explicit */
+    requires('opengee-postgis', '2.3.4', GREATER | EQUAL)
     requires('chkconfig')
     requires('shadow-utils')
     requires('sudo')
-    
+    conflicts('opengee-postgis', '2.4', GREATER | EQUAL)
+
     requiresCommands(packageSharedCommands +
         ['cat', 'cut', 'getent', 'grep' ])
-    
-    /* Since some libraries (i.e., MrSid)  cannot be redistributed without a 
+
+    /* Since some libraries (i.e., MrSid)  cannot be redistributed without a
        license and are not packaged as an RPM, we need to filter these out from the
        automatic 'requires' dependency generation. */
-    
+
     def filterCapabilities = ['libltidsdk.so()(64bit)']
-    autoFindRequiresFilter = { 
-        return filterCapabilities.contains(it.name) ? null : it 
+    autoFindRequiresFilter = {
+        return filterCapabilities.contains(it.name) ? null : it
     }
 
     // Prefix variable definitions to all install scripts:
@@ -376,7 +378,7 @@ task openGeeServerRpm (type: GeeRpm, dependsOn: openGeeSharedFiles) {
     directory('/var/opt/google/log', 0775)
     directory('/var/opt/google/pgsql', 0700)
     directory('/var/opt/google/pgsql/logs')
-    
+
     from(stagedInstallDir_server_opt) {
         // libpq is in the opengee-postgis package:
         exclude 'google/lib/libpq.*'
@@ -452,7 +454,7 @@ built from raster, vector, and location properties data.
 
     requires('proj-devel') /* This dependency is not being picked up automatically by GeeRpm task */
     requires('opengee-common', openGeeVersion, GREATER | EQUAL)
-    
+
 
     requiresCommands(
         packageSharedCommands +
